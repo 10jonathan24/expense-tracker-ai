@@ -1,6 +1,23 @@
 "use client";
 
 import { CATEGORIES } from "@/types/expense";
+import { shiftIsoDate, startOfMonthIso, todayISO } from "@/lib/format";
+
+const DATE_PRESETS: { label: string; range: () => { startDate: string; endDate: string } }[] = [
+  { label: "All time", range: () => ({ startDate: "", endDate: "" }) },
+  {
+    label: "This month",
+    range: () => ({ startDate: startOfMonthIso(todayISO()), endDate: todayISO() }),
+  },
+  {
+    label: "Last 30 days",
+    range: () => ({ startDate: shiftIsoDate(todayISO(), -29), endDate: todayISO() }),
+  },
+  {
+    label: "Last 90 days",
+    range: () => ({ startDate: shiftIsoDate(todayISO(), -89), endDate: todayISO() }),
+  },
+];
 
 export interface FilterState {
   search: string;
@@ -32,6 +49,10 @@ export function ExpenseFilters({ filters, onChange }: ExpenseFiltersProps) {
 
   function update<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     onChange({ ...filters, [key]: value });
+  }
+
+  function applyDatePreset(range: { startDate: string; endDate: string }) {
+    onChange({ ...filters, startDate: range.startDate, endDate: range.endDate });
   }
 
   return (
@@ -91,6 +112,27 @@ export function ExpenseFilters({ filters, onChange }: ExpenseFiltersProps) {
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400"
           />
         </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className="mr-0.5 text-xs font-medium text-slate-500">Quick range:</span>
+        {DATE_PRESETS.map((preset) => {
+          const range = preset.range();
+          const isActive = filters.startDate === range.startDate && filters.endDate === range.endDate;
+          return (
+            <button
+              key={preset.label}
+              onClick={() => applyDatePreset(range)}
+              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                isActive
+                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-3 flex items-center justify-between">

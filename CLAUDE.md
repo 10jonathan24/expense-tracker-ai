@@ -26,14 +26,19 @@ This is a single-page Next.js 14 App Router app (`src/app/page.tsx`) — there i
 
 **Component responsibilities** (`src/components/`):
 - `ExpenseForm` — add/edit form with inline validation (shared by both flows via an `initial?: Expense` prop).
-- `ExpenseFilters` — controlled filter bar; `FilterState`/`DEFAULT_FILTERS` are exported and owned by `page.tsx`.
+- `ExpenseFilters` — controlled filter bar; `FilterState`/`DEFAULT_FILTERS` are exported and owned by `page.tsx`. Includes "Quick range" date presets (All time / This month / Last 30 days / Last 90 days) built from `shiftIsoDate`/`startOfMonthIso` in `lib/format.ts`, so the From/To date inputs aren't the only way to set a range.
 - `ExpenseList` — pure display + edit/delete triggers; distinguishes "no expenses at all" from "no expenses match filters".
-- `SummaryCards` / `SpendingCharts` — always computed from the full unfiltered `expenses` array (dashboard overview), not from `filteredExpenses` (which only affects the list below and CSV export).
+- `SummaryCards` / `SpendingCharts` — always computed from the full unfiltered `expenses` array (dashboard overview), not from `filteredExpenses` (which only affects the list below).
 - `Modal` / `ConfirmDialog` / `Toast` — generic UI primitives with no expense-specific logic.
+- `ExportDrawer` — the header's "Export" button opens this right-side drawer (not the shared `Modal`, which is sized for compact dialogs). It owns its own date-range/category filters, independent of `page.tsx`'s main list filters, and lets the user pick a format (CSV/JSON/PDF), preview a sample of the matched rows, name the file, and export. All the actual filtering/building/downloading logic lives in `src/lib/exportData.ts`, which the drawer calls into; the drawer itself is presentational state + the form controls.
 
-**Formatting/utilities** (`src/lib/`): `format.ts` (currency + date formatting, `todayISO()`), `csv.ts` (CSV export + browser download trigger), `storage.ts`, `seed.ts`.
+**Export** (`src/lib/exportData.ts`): `filterExpensesForExport` applies the drawer's own date-range/category filters (distinct from the main list's `FilterState`). `buildCsv`/`buildJson` are synchronous string builders; `buildPdf` dynamically imports `jspdf` + `jspdf-autotable` (so that ~450KB engine isn't in the initial bundle) and renders a formatted report via `autoTable`. `exportExpenses(format, expenses, filters, filenameBase, allCategories)` is the orchestrating entry point — filters, throws `EmptyExportError` if nothing matches, builds the chosen format, and triggers the browser download via `downloadBlob`. `sanitizeFilename` strips characters that are awkward in downloaded filenames.
 
-**Styling**: Tailwind only, no component library. Custom `fade-in`/`zoom-in`/`slide-up` keyframes are defined in `tailwind.config.ts` (the `tailwindcss-animate` plugin is not installed — don't use `animate-in`/`slide-in-from-*` utility classes, they won't exist). Design intent is a light, professional slate/indigo theme; `globals.css` does not implement dark mode.
+**Formatting/utilities** (`src/lib/`): `format.ts` (currency + date formatting, `todayISO()`, and the `shiftIsoDate`/`startOfMonthIso` date-range helpers shared by `ExpenseFilters`'s and `ExportDrawer`'s quick-range presets), `exportData.ts` (see above), `storage.ts`, `seed.ts`.
+
+**Styling**: Tailwind only, no component library. Custom `fade-in`/`zoom-in`/`slide-up`/`slide-in-right` keyframes are defined in `tailwind.config.ts` (the `tailwindcss-animate` plugin is not installed — don't use `animate-in`/`slide-in-from-*` utility classes, they won't exist). Design intent is a light, professional slate/indigo theme; `globals.css` does not implement dark mode.
+
+**PDF generation**: `jspdf` + `jspdf-autotable` are client-side-only dependencies (no server/API route involved) used solely by `buildPdf` in `src/lib/exportData.ts`. Import them with the named `jsPDF`/`autoTable` exports (`import { jsPDF } from "jspdf"`), not the default export — both builds expose it, but Node's own module resolution (e.g. for a standalone script) picks a differently-shaped bundle than a browser bundler does, and the named export is correct in both.
 
 ## Known constraint
 
