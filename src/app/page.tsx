@@ -13,10 +13,10 @@ import { ExpenseList } from "@/components/ExpenseList";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { Modal } from "@/components/Modal";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ExportHub } from "@/components/ExportHub/ExportHub";
 import { ToastStack, ToastState } from "@/components/Toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { Expense, ExpenseInput } from "@/types/expense";
-import { expensesToCsv, downloadCsv } from "@/lib/csv";
 
 export default function Home() {
   const { expenses, isLoaded, addExpense, updateExpense, deleteExpense } =
@@ -26,6 +26,7 @@ export default function Home() {
     { mode: "add" } | { mode: "edit"; expense: Expense } | null
   >(null);
   const [pendingDelete, setPendingDelete] = useState<Expense | null>(null);
+  const [isExportHubOpen, setIsExportHubOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastState[]>([]);
 
   function pushToast(message: string, variant: ToastState["variant"] = "success") {
@@ -95,23 +96,12 @@ export default function Home() {
     setPendingDelete(null);
   }
 
-  function handleExport() {
-    if (filteredExpenses.length === 0) {
-      pushToast("No expenses to export.", "error");
-      return;
-    }
-    const csv = expensesToCsv(filteredExpenses);
-    const filename = `expenses-${new Date().toISOString().slice(0, 10)}.csv`;
-    downloadCsv(filename, csv);
-    pushToast("CSV exported.");
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
         onAddExpense={() => setFormState({ mode: "add" })}
-        onExport={handleExport}
-        canExport={filteredExpenses.length > 0}
+        onOpenExportHub={() => setIsExportHubOpen(true)}
+        canExport={expenses.length > 0}
       />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 space-y-6">
@@ -155,6 +145,12 @@ export default function Home() {
           onCancel={() => setPendingDelete(null)}
         />
       )}
+
+      <ExportHub
+        isOpen={isExportHubOpen}
+        expenses={expenses}
+        onClose={() => setIsExportHubOpen(false)}
+      />
 
       <ToastStack toasts={toasts} />
     </div>
