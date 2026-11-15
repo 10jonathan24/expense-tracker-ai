@@ -16,7 +16,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ToastStack, ToastState } from "@/components/Toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { Expense, ExpenseInput } from "@/types/expense";
-import { expensesToCsv, downloadCsv } from "@/lib/csv";
+import { expensesToCsv, expensesToDataCsv, downloadCsv } from "@/lib/csv";
 
 export default function Home() {
   const { expenses, isLoaded, addExpense, updateExpense, deleteExpense } =
@@ -106,12 +106,20 @@ export default function Home() {
     pushToast("CSV exported.");
   }
 
+  function handleExportData() {
+    const csv = expensesToDataCsv(expenses);
+    const filename = `expense-data-${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadCsv(filename, csv);
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
         onAddExpense={() => setFormState({ mode: "add" })}
         onExport={handleExport}
         canExport={filteredExpenses.length > 0}
+        onExportData={handleExportData}
+        canExportData={expenses.length > 0}
       />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 space-y-6">
@@ -150,6 +158,7 @@ export default function Home() {
       {pendingDelete && (
         <ConfirmDialog
           title="Delete expense"
+          confirmLabel="Delete expense"
           message={`Are you sure you want to delete "${pendingDelete.description}"? This action cannot be undone.`}
           onConfirm={handleConfirmDelete}
           onCancel={() => setPendingDelete(null)}

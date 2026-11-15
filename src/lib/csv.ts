@@ -20,6 +20,20 @@ export function expensesToCsv(expenses: Expense[]): string {
     .join("\n");
 }
 
+/** All-expenses "Export Data" format: Date, Category, Amount, Description. */
+export function expensesToDataCsv(expenses: Expense[]): string {
+  const header = ["Date", "Category", "Amount", "Description"];
+  const rows = expenses.map((e) => [
+    e.date,
+    e.category,
+    e.amount.toFixed(2),
+    e.description,
+  ]);
+  return [header, ...rows]
+    .map((row) => row.map(escapeCsvField).join(","))
+    .join("\n");
+}
+
 export function downloadCsv(filename: string, csv: string): void {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

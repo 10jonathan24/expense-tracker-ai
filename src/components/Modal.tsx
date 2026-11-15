@@ -37,7 +37,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close dialog"
             className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
           >
             <svg

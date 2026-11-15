@@ -28,7 +28,7 @@ This is a single-page Next.js 14 App Router app (`src/app/page.tsx`) — there i
 - `ExpenseForm` — add/edit form with inline validation (shared by both flows via an `initial?: Expense` prop).
 - `ExpenseFilters` — controlled filter bar; `FilterState`/`DEFAULT_FILTERS` are exported and owned by `page.tsx`.
 - `ExpenseList` — pure display + edit/delete triggers; distinguishes "no expenses at all" from "no expenses match filters".
-- `SummaryCards` / `SpendingCharts` — always computed from the full unfiltered `expenses` array (dashboard overview), not from `filteredExpenses` (which only affects the list below and CSV export).
+- `SummaryCards` / `SpendingCharts` — always computed from the full unfiltered `expenses` array (dashboard overview), not from `filteredExpenses` (which only affects the list below and the header's Export CSV button; the separate Export Data button always exports all expenses as Date, Category, Amount, Description).
 - `Modal` / `ConfirmDialog` / `Toast` — generic UI primitives with no expense-specific logic.
 
 **Formatting/utilities** (`src/lib/`): `format.ts` (currency + date formatting, `todayISO()`), `csv.ts` (CSV export + browser download trigger), `storage.ts`, `seed.ts`.
